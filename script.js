@@ -70,16 +70,15 @@ const choices = document.querySelectorAll('.choice');
 const progressText = document.getElementById('progressText');
 const scoreText = document.getElementById('score');
 const progressBarFull = document.getElementById('progressBarFull');
-
 let currentQuestionIndex = 0;
 let score = 0;
+let acceptingAnswers = false;
 
 function startGame() {
     currentQuestionIndex = 0;
     score = 0;
     showQuestion();
 }
-
 function showQuestion() {
     const currentQuestion = questions[currentQuestionIndex];
     questionElement.innerText = currentQuestion.question;
@@ -87,14 +86,21 @@ function showQuestion() {
     choices.forEach((choice, index) => {
         choice.innerText = currentQuestion['choice' + (index + 1)];
         choice.dataset.answer = index + 1;
-        choice.classList.remove('correct', 'incorrect');
+        choice.classList.remove('correct', 'incorrect', 'selected');
+        const input = choice.previousElementSibling;
+        if (input) {
+            input.checked = false;
+        }
     });
 
     progressText.innerText = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
     progressBarFull.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+    acceptingAnswers = true;
 }
-
 function checkAnswer(selectedChoice) {
+    if (!acceptingAnswers) return;
+    acceptingAnswers = false;
+
     const selectedAnswer = parseInt(selectedChoice.dataset.answer);
     const currentQuestion = questions[currentQuestionIndex];
     if (selectedAnswer === currentQuestion.answer) {
@@ -114,10 +120,11 @@ function checkAnswer(selectedChoice) {
         localStorage.setItem('mostRecentScore', score);
         window.location.href = 'end.html';
     }
-}
 
+}
 choices.forEach(choice => {
     choice.addEventListener('click', () => {
+        if (!acceptingAnswers) return;
         if (!choice.classList.contains('correct') && !choice.classList.contains('incorrect')) {
             checkAnswer(choice);
         }
